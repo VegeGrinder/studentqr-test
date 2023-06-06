@@ -17,3 +17,9 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', function () {
     return view('welcome');
 });
+
+Route::prefix('students')->group(function () {
+    Route::get('/', [StudentController::class, 'index']);
+    Route::get('template', [StudentController::class, 'template'])->name('students.template');
+    Route::post('upload', [StudentController::class, 'upload'])->name('students.upload');
+});
