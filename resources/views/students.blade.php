@@ -24,24 +24,32 @@
                     <button class="btn btn-sm w-100 btn-outline-primary mb-2" id="uploadButton">UPLOAD</button>
                 </div>
                 <div class="col">
-                    <button class="btn btn-sm w-100 btn-outline-danger mb-2">RESET</button>
+                    <button class="btn btn-sm w-100 btn-outline-danger mb-2" id="resetButton">RESET</button>
                 </div>
+            </div>
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" value="" id="uniqueCheckbox">
+                <label class="form-check-label" for="uniqueCheckbox">
+                    Use Name & Parent Contact to check for uniqueness only (assuming all children use the same parent contact respectively and they have different names)
+                </label>
             </div>
 
             {{-- Bottom Table/Data --}}
-            <table class="table">
-                <thead>
-                    <tr class="text-center">
-                        <th>Name</th>
-                        <th>Class</th>
-                        <th>Level</th>
-                        <th>Parent Contact</th>
-                    </tr>
-                </thead>
-                <tbody id="uploadContent">
-                    @include('students-data', ['rows' => []])
-                </tbody>
-            </table>
+            <div class="table-responsive">
+                <table class="table">
+                    <thead>
+                        <tr class="text-center">
+                            <th>Name</th>
+                            <th>Class</th>
+                            <th>Level</th>
+                            <th>Parent Contact</th>
+                        </tr>
+                    </thead>
+                    <tbody id="uploadContent">
+                        @include('students-data', ['rows' => []])
+                    </tbody>
+                </table>
+            </div>
         </div>
     </body>
 </html>
@@ -52,8 +60,11 @@
         $("#uploadButton").click(function() {
             var formData = new FormData();
             formData.append('new_students_file', $('#formFile')[0].files[0]);
-            formData.append('existing_students', getExistingStudents());
+            formData.append('existing_students', existingStudents);
+            formData.append('is_special_unique', $('#uniqueCheckbox').is(':checked'));
             formData.append('_token', '{{ csrf_token() }}');
+
+            toggleButtons(true);
 
             $.ajax({
                 url: '{{ route('students.upload') }}',
@@ -63,16 +74,21 @@
                 contentType: false,
                 success: function(data) {
                     $('#uploadContent').html(data.html);
+                    existingStudents = data.data;
                     alert(data.message);
                 },
-                fail: function(jqXHR, textStatus) {
+                error: function(jqXHR, textStatus) {
                     alert("Request failed: " + textStatus);
+                },
+                complete: function() {
+                    toggleButtons(false);
                 }
             });
         });
     });
 
-    function getExistingStudents() {
-        return 'asd';
+    function toggleButtons(disabled = true) {
+        $('#uploadButton').prop('disabled', disabled);
+        $('#resetButton').prop('disabled', disabled);
     }
 </script>
